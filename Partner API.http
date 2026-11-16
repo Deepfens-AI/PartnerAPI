@@ -1,0 +1,59 @@
+@api=https://www.deepfens.com/api/partner/v1
+
+@token=df_replace_with_partner_token
+@identifier=2442E357CC11
+@cursor=replace_with_next_cursor
+@from=2026-10-01T00:00:00%2B08:00
+@to=2026-11-01T00:00:00%2B08:00
+
+### List partner devices
+GET {{api}}/devices
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### List partner devices with page size
+GET {{api}}/devices?per_page=2
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get the next device page
+# Replace @cursor with next_cursor from the previous response.
+GET {{api}}/devices?per_page=2&cursor={{cursor}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get one partner device
+# Device identifiers are case-insensitive.
+GET {{api}}/devices/{{identifier}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Missing token — expected 401
+GET {{api}}/devices
+Accept: application/json
+
+### Invalid token — expected 401
+GET {{api}}/devices
+Accept: application/json
+Authorization: Bearer df_invalid_token
+
+### Invalid page size — expected 422
+GET {{api}}/devices?per_page=101
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get device timeline
+GET {{api}}/devices/{{identifier}}/timeline?from={{from}}&to={{to}}
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Filter and paginate device timeline
+GET {{api}}/devices/{{identifier}}/timeline?from={{from}}&to={{to}}&status=fall,distress_call&per_page=100
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### Get next timeline page
+# Replace @cursor with next_cursor from the previous timeline response.
+GET {{api}}/devices/{{identifier}}/timeline?from={{from}}&to={{to}}&status=fall,distress_call&per_page=100&cursor={{cursor}}
+Accept: application/json
+Authorization: Bearer {{token}}
