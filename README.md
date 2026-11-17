@@ -2,12 +2,13 @@
 
 **Deepfens AI**
 
-> 版本 1.5 · 2026-11-17
+> 版本 1.6 · 2026-11-17
 > 機密文件 · 僅供合作夥伴使用
 
 本文件說明合作夥伴如何讀取 Deepfens 雷達裝置的資料：
 
 - **狀態時間軸（Timeline）**：裝置狀態的變化紀錄，例如活動中、靜止、跌倒、無人。
+- **MQTT 即時事件**：即時接收跌倒、警報解除、有人與無人等裝置事件。
 
 所有 API 皆為**唯讀**。
 
@@ -76,7 +77,7 @@ Accept: application/json
 | 名稱 | 必填 | 說明 |
 | --- | --- | --- |
 | `per_page` | 否 | 每頁筆數，範圍 1–100，預設 50 |
-| `cursor` | 否 | 下一頁的游標（請參考[分頁](#4-分頁)） |
+| `cursor` | 否 | 下一頁的游標（請參考[分頁](#5-分頁)） |
 
 **回應 `200 OK`**
 
@@ -106,7 +107,7 @@ Accept: application/json
 | `name` | 裝置名稱 |
 | `location` | 裝置所在位置 |
 | `is_online` | 是否在線 |
-| `status` | 目前狀態（請參考[狀態代碼](#5-裝置狀態代碼)） |
+| `status` | 目前狀態（請參考[狀態代碼](#6-裝置狀態代碼)） |
 | `rssi` | Wi-Fi 訊號強度（dBm），數值越接近 0，訊號越好 |
 
 ### 3.2 查詢單一裝置
@@ -168,7 +169,77 @@ Accept: application/json
 
 ---
 
-## 4. 分頁
+## 4. MQTT 即時事件
+
+[`partner.mqtt`](./partner.mqtt) 提供可直接執行的 MQTT 訊息範例，包含連線設定、各 event 的 topic、QoS、retain 與 payload。可使用支援 `.mqtt` request file 的 IDE 開啟並執行，也可依照其中的 topic 規格串接其他 MQTT client。
+
+### 4.1 連線資訊
+
+| 項目 | 設定 |
+| --- | --- |
+| Broker | `mqtt.deepfens.com` |
+| Port | `8885` |
+| 通訊協定 | MQTT over TLS（`mqtts`） |
+| Payload | UTF-8 JSON |
+| Event QoS | `1` |
+| Event retain | `false` |
+
+檔案開頭包含以下變數，請替換為 Deepfens 提供的合作夥伴與裝置識別資訊：
+
+```text
+host=mqtt.deepfens.com
+organizationMqttId=UKkL
+identifier=2442e357dfff
+```
+
+`organizationMqttId` 是合作夥伴 Organization 的 MQTT 識別碼；`identifier` 是裝置識別碼。MQTT 認證資訊由 Deepfens 另行提供，請勿提交至版本控制或放入前端程式碼。
+
+### 4.2 Topic 格式
+
+Event topic 使用以下格式：
+
+```text
+livemore/v0/{organizationMqttId}/devices/{identifier}/events/{event}
+```
+
+目前支援的 event：
+
+| Event | Topic 結尾 | Payload | 說明 |
+| --- | --- | --- | --- |
+| 偵測到跌倒 | `events/fall-detected` | `{}` | 裝置偵測到跌倒。僅透過語音求助時會發布 `distress-detected`，不會發布此 event |
+| Alert 已解除 | `events/alert-resolved` | `{"mode":"radar"}` | `mode` 為 `radar`、`speech` 或 `dashboard` |
+| 偵測到有人 | `events/presence-detected` | `{}` | 監測區域由無人轉為有人 |
+| 無人 | `events/vacant` | `{}` | 監測區域由有人轉為無人；此 event 不會解除 fall alert |
+
+### 4.3 Occupancy state
+
+最新 occupancy state 使用 retained message，讓新的 subscriber 無須重播歷史 event 即可取得目前狀態：
+
+```text
+topic: livemore/v0/{organizationMqttId}/devices/{identifier}/state/occupancy
+qos: 1
+retain: true
+
+{
+  "state": "vacant"
+}
+```
+
+`state` 為 `occupied`、`vacant` 或 `unknown`。
+
+### 4.4 訂閱裝置的所有訊息
+
+使用 MQTT multi-level wildcard `#` 訂閱指定裝置下的所有 event 與 state：
+
+```text
+livemore/v0/{organizationMqttId}/devices/{identifier}/#
+```
+
+完整且可執行的範例請參考 [`partner.mqtt`](./partner.mqtt)。
+
+---
+
+## 5. 分頁
 
 列表類 API 使用游標（cursor）分頁：
 
@@ -180,7 +251,7 @@ Accept: application/json
 
 ---
 
-## 5. 裝置狀態代碼
+## 6. 裝置狀態代碼
 
 `status.code` 和 `status.name` 不會變動，可安心儲存或用於程式判斷；`label` 僅供畫面顯示，日後可能調整。
 
@@ -204,7 +275,7 @@ Accept: application/json
 
 ---
 
-## 6. 錯誤處理
+## 7. 錯誤處理
 
 錯誤會使用標準 HTTP 狀態碼，回應格式如下：
 
@@ -229,7 +300,7 @@ Accept: application/json
 
 ---
 
-## 7. 資料保存期限
+## 8. 資料保存期限
 
 | 資料 | 保存期限 |
 | --- | --- |
@@ -237,7 +308,7 @@ Accept: application/json
 
 ---
 
-## 8. 串接建議
+## 9. 串接建議
 
 - **定期查詢：** 查詢時間軸時，將 `from` 設為上次取得的最後一筆 `occurred_at`。一般儀表板**每 30 秒以上查詢一次**即可。
 - **避免重複資料：** 使用紀錄的 `id` 判斷資料是否已處理過。
@@ -246,6 +317,6 @@ Accept: application/json
 
 ---
 
-## 9. 聯絡窗口
+## 10. 聯絡窗口
 
 如需申請 API Key、設定裝置權限或詢問技術問題，請聯絡 Deepfens：`support@deepfens.com`

@@ -1,0 +1,75 @@
+host=mqtt.deepfens.com
+organizationMqttId=UKkL
+identifier=2442e357dfff
+
+# Partner MQTT 介面
+#
+# 所有 topic 均省略開頭的 `/`。
+# Payload 使用 UTF-8 JSON。
+# Event 訊息使用 QoS 1，且不設為 retained。
+
+# %%
+url: mqtts://{{host}}:8885
+
+# ## 偵測到跌倒（fall-detected）
+topic: livemore/v0/{{organizationMqttId}}/devices/{{identifier}}/events/fall-detected
+qos: 1
+retain: false
+
+{}
+
+# Fall event 規則：
+# - Organization、device、protocol version 與 event type 皆取自 topic。
+# - 僅透過語音求助的事件會發布為 distress-detected，而不是
+#   fall-detected event。
+
+# ## 跌倒 alert 已解除（alert-resolved）
+topic: livemore/v0/{{organizationMqttId}}/devices/{{identifier}}/events/alert-resolved
+qos: 1
+retain: false
+
+{
+    "mode": "radar"
+}
+
+# Alert resolution mode 為以下其中之一：radar、speech、dashboard。
+
+# ## 偵測到有人（presence-detected）
+topic: livemore/v0/{{organizationMqttId}}/devices/{{identifier}}/events/presence-detected
+qos: 1
+retain: false
+
+{}
+
+# Presence detected 表示 device 的監測區域由未偵測到 occupancy
+# 轉為偵測到 occupancy。
+
+# ## 無人（vacant）
+topic: livemore/v0/{{organizationMqttId}}/devices/{{identifier}}/events/vacant
+qos: 1
+retain: false
+
+{}
+
+# Vacant 表示 device 的監測區域由偵測到 occupancy 轉為未偵測到
+# occupancy。這不代表 device offline、整個場所無人，或已解除進行中的
+# fall alert。
+#
+# Vacant event 不會解除 fall。Fall lifecycle 結束時，device 必須另外發布
+# alert-resolved。
+
+# ## 目前的 occupancy state
+# Retained state 可讓新的 subscriber 取得最新 occupancy，無須重播歷史
+# event。
+topic: livemore/v0/{{organizationMqttId}}/devices/{{identifier}}/state/occupancy
+qos: 1
+retain: true
+
+{
+    "state": "vacant"
+}
+
+# Occupancy state 為以下其中之一：occupied、vacant、unknown。
+
+# $$
+topic: livemore/v0/{{organizationMqttId}}/devices/{{identifier}}/#
