@@ -2,7 +2,7 @@
 
 **Deepfens AI**
 
-> 版本 1.4 · 2026-11-16  
+> 版本 1.5 · 2026-11-17
 > 機密文件 · 僅供合作夥伴使用
 
 本文件說明合作夥伴如何讀取 Deepfens 雷達裝置的資料：
@@ -86,6 +86,7 @@ Accept: application/json
     {
       "identifier": "2442E357CC11",
       "name": "301 房浴室",
+      "location": "3 樓",
       "is_online": true,
       "status": {
         "code": 9,
@@ -103,6 +104,7 @@ Accept: application/json
 | --- | --- |
 | `identifier` | 裝置識別碼（MAC） |
 | `name` | 裝置名稱 |
+| `location` | 裝置所在位置 |
 | `is_online` | 是否在線 |
 | `status` | 目前狀態（請參考[狀態代碼](#5-裝置狀態代碼)） |
 | `rssi` | Wi-Fi 訊號強度（dBm），數值越接近 0，訊號越好 |
@@ -118,6 +120,7 @@ Accept: application/json
   "data": {
     "identifier": "2442E357CC11",
     "name": "301 房浴室",
+    "location": "3 樓",
     "is_online": true,
     "status": { "code": 9, "name": "somebody", "label": "有人" },
     "rssi": -71

@@ -11,6 +11,25 @@ GET {{api}}/devices
 Accept: application/json
 Authorization: Bearer {{token}}
 
+# 200 response (abbreviated):
+# {
+#   "data": [
+#     {
+#       "identifier": "2442E357CC11",
+#       "name": "301 房浴室",
+#       "location": "3 樓",
+#       "is_online": true,
+#       "status": {
+#         "code": 9,
+#         "name": "somebody",
+#         "label": "有人"
+#       },
+#       "rssi": -71
+#     }
+#   ],
+#   "next_cursor": null
+# }
+
 ### List partner devices with page size
 GET {{api}}/devices?per_page=2
 Accept: application/json
@@ -28,9 +47,30 @@ GET {{api}}/devices/{{identifier}}
 Accept: application/json
 Authorization: Bearer {{token}}
 
+# 200 response:
+# {
+#   "data": {
+#     "identifier": "2442E357CC11",
+#     "name": "301 房浴室",
+#     "location": "3 樓",
+#     "is_online": true,
+#     "status": {
+#       "code": 9,
+#       "name": "somebody",
+#       "label": "有人"
+#     },
+#     "rssi": -71
+#   }
+# }
+
 ### Missing token — expected 401
 GET {{api}}/devices
 Accept: application/json
+
+# 401 response:
+# {
+#   "message": "Unauthenticated."
+# }
 
 ### Invalid token — expected 401
 GET {{api}}/devices
@@ -42,10 +82,36 @@ GET {{api}}/devices?per_page=101
 Accept: application/json
 Authorization: Bearer {{token}}
 
+# 422 response (abbreviated):
+# {
+#   "message": "per page 欄位必須介於 1 到 100 之間。",
+#   "errors": {
+#     "per_page": [
+#       "per page 欄位必須介於 1 到 100 之間。"
+#     ]
+#   }
+# }
+
 ### Get device timeline
 GET {{api}}/devices/{{identifier}}/timeline?from={{from}}&to={{to}}
 Accept: application/json
 Authorization: Bearer {{token}}
+
+# 200 response (abbreviated):
+# {
+#   "data": [
+#     {
+#       "id": 98231,
+#       "status": {
+#         "code": 1,
+#         "name": "fall",
+#         "label": "跌倒"
+#       },
+#       "occurred_at": "2026-10-29T22:41:07+08:00"
+#     }
+#   ],
+#   "next_cursor": "eyJpZCI6OTgyMzB9"
+# }
 
 ### Filter and paginate device timeline
 GET {{api}}/devices/{{identifier}}/timeline?from={{from}}&to={{to}}&status=fall,distress_call&per_page=100
