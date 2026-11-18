@@ -23,6 +23,15 @@ retain: false
 # - 僅透過語音求助的事件會發布為 distress-detected，而不是
 #   fall-detected event。
 
+# ## 偵測到求救（distress-detected）
+topic: livemore/v0/{{organizationMqttId}}/devices/{{identifier}}/events/distress-detected
+qos: 1
+retain: false
+
+{}
+
+# Distress call event 表示人員透過語音求助。
+
 # ## 跌倒 alert 已解除（alert-resolved）
 topic: livemore/v0/{{organizationMqttId}}/devices/{{identifier}}/events/alert-resolved
 qos: 1
