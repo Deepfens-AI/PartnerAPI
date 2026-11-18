@@ -192,7 +192,7 @@ organizationMqttId=UKkL
 identifier=2442e357dfff
 ```
 
-`organizationMqttId` 是合作夥伴 Organization 的 MQTT 識別碼；`identifier` 是裝置識別碼。MQTT 認證資訊由 Deepfens 另行提供，請勿提交至版本控制或放入前端程式碼。
+`organizationMqttId` 是合作夥伴 Organization 的 MQTT 識別碼；`identifier` 是裝置識別碼。`identifier` 不分大小寫，因此 MQTT topic 中的 `identifier` 可使用 REST API 回傳值的原始大小寫，也可使用其大寫或小寫形式。MQTT 認證資訊由 Deepfens 另行提供，請勿提交至版本控制或放入前端程式碼。
 
 ### 4.2 Mosquitto 訂閱範例
 
@@ -202,6 +202,7 @@ identifier=2442e357dfff
 mosquitto_sub \
   -h mqtt.deepfens.com \
   -p 8885 \
+  --tls-use-os-certs \
   -u YOUR_MQTT_USERNAME \
   -P YOUR_MQTT_PASSWORD \
   -q 1 \
@@ -210,6 +211,7 @@ mosquitto_sub \
 ```
 
 - 將 `UKkL`、`2442e357dfff`、帳號及密碼替換為 Deepfens 提供的資料。
+- `--tls-use-os-certs` 會使用作業系統的 CA 憑證驗證 Broker 的 TLS 憑證；連線至 `8885` 時不可省略。
 - `-v` 會同時顯示 topic 與 payload，便於確認收到的訊息類型。
 
 ### 4.3 Topic 格式
