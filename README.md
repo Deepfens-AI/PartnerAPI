@@ -2,7 +2,7 @@
 
 **Deepfens AI**
 
-> 版本 1.6 · 2026-11-17
+> 版本 0.7 · 2026-11-18
 > 機密文件 · 僅供合作夥伴使用
 
 本文件說明合作夥伴如何讀取 Deepfens 雷達裝置的資料：
@@ -272,6 +272,28 @@ livemore/v0/{organizationMqttId}/devices/{identifier}/#
 不是每種型號都會回報所有狀態，例如床相關狀態只會由床墊感測器回報。
 
 > **警報：** `fall`（1）與 `distress_call`（11）需要立即處理。收到 `resolved`（10）或其他狀態前，警報都會持續。
+
+### 6.1 管理後台手動變更狀態
+
+授權管理員可在 Deepfens 管理後台的 **Device Detail → Device Settings → Status** 手動變更裝置目前狀態。此功能不會開放寫入 Partner API；本文件所列 API 仍為唯讀。
+
+目前可手動選擇的狀態僅限以下三種：
+
+| code | name | 說明 |
+| --- | --- | --- |
+| 1 | `fall` | 將裝置標記為偵測到跌倒 |
+| 4 | `vacant` | 將裝置標記為偵測範圍內無人 |
+| 9 | `somebody` | 將裝置標記為偵測範圍內有人 |
+
+手動變更與裝置自動回報使用相同的狀態處理流程：
+
+- 裝置目前狀態會立即更新，後續透過 `GET /devices` 或 `GET /devices/{identifier}` 可讀取新狀態。
+- 狀態變更會新增一筆 Timeline 紀錄，可透過 `GET /devices/{identifier}/timeline` 查詢。
+- 設為 `fall` 時，若該裝置及組織已啟用跌倒警報，系統會建立警報並發布 `fall-detected` MQTT event。
+- 設為 `somebody` 時會發布 `presence-detected` MQTT event。
+- 設為 `vacant` 時，若變更前為有人狀態，會發布 `vacant` MQTT event。
+
+Partner API 與 Timeline 不會區分狀態是由裝置自動回報或管理員手動變更；合作夥伴應以 `status.code`、`status.name` 及 `occurred_at` 處理狀態資料。
 
 ---
 
