@@ -194,7 +194,25 @@ identifier=2442e357dfff
 
 `organizationMqttId` 是合作夥伴 Organization 的 MQTT 識別碼；`identifier` 是裝置識別碼。MQTT 認證資訊由 Deepfens 另行提供，請勿提交至版本控制或放入前端程式碼。
 
-### 4.2 Topic 格式
+### 4.2 Mosquitto 訂閱範例
+
+安裝 Mosquitto client 後，可使用 `mosquitto_sub` 訂閱指定裝置的所有 event 與 state：
+
+```bash
+mosquitto_sub \
+  -h mqtt.deepfens.com \
+  -p 8885 \
+  -u YOUR_MQTT_USERNAME \
+  -P YOUR_MQTT_PASSWORD \
+  -q 1 \
+  -t 'livemore/v0/goodcare/#' \
+  -v
+```
+
+- 將 `UKkL`、`2442e357dfff`、帳號及密碼替換為 Deepfens 提供的資料。
+- `-v` 會同時顯示 topic 與 payload，便於確認收到的訊息類型。
+
+### 4.3 Topic 格式
 
 Event topic 使用以下格式：
 
@@ -211,7 +229,7 @@ livemore/v0/{organizationMqttId}/devices/{identifier}/events/{event}
 | 偵測到有人 | `events/presence-detected` | `{}` | 監測區域由無人轉為有人 |
 | 無人 | `events/vacant` | `{}` | 監測區域由有人轉為無人；此 event 不會解除 fall alert |
 
-### 4.3 Occupancy state
+### 4.4 Occupancy state
 
 最新 occupancy state 使用 retained message，讓新的 subscriber 無須重播歷史 event 即可取得目前狀態：
 
@@ -227,7 +245,7 @@ retain: true
 
 `state` 為 `occupied`、`vacant` 或 `unknown`。
 
-### 4.4 訂閱裝置的所有訊息
+### 4.5 訂閱裝置的所有訊息
 
 使用 MQTT multi-level wildcard `#` 訂閱指定裝置下的所有 event 與 state：
 
